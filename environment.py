@@ -16,7 +16,7 @@ light_duration = 120  # 2 seconds
 def draw_environment(screen):
     global lights_off
     if lights_off:
-        screen.fill(DARK_GRAY)
+        screen.fill(RED)
     else:
         screen.fill((0, 0, 0))
 
