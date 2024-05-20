@@ -1,11 +1,10 @@
-# main.py
 import pygame
 import sys
 import random
 from player import draw_player, player_pos, player_speed, player_size
-from obstacle import draw_obstacle, obstacle_pos, obstacle_speed, obstacle_size
+from environment import draw_environment, environment_update
 from enemy import draw_enemy, move_enemy, enemy_pos, enemy_speed, enemy_size
-from mechanics import detect_collision, player_health, score, WIN_SCORE
+from mechanics import detect_collision, player_health, score, WIN_SCORE, display_text
 
 # Initialize Pygame
 pygame.init()
@@ -28,7 +27,7 @@ clock = pygame.time.Clock()
 
 # Main game loop
 def game_loop():
-    global player_health, score
+    global player_health, score, enemy_pos
     running = True
     while running:
         for event in pygame.event.get():
@@ -41,43 +40,34 @@ def game_loop():
         if keys[pygame.K_RIGHT] and player_pos[0] < SCREEN_WIDTH - player_size:
             player_pos[0] += player_speed
 
-        obstacle_pos[1] += obstacle_speed
-        if obstacle_pos[1] > SCREEN_HEIGHT:
-            obstacle_pos[0] = random.randint(0, SCREEN_WIDTH - obstacle_size)
-            obstacle_pos[1] = 0
-
+        environment_update()
         enemy_pos = move_enemy(enemy_pos, enemy_speed)
 
         # Check for collisions
-        if detect_collision(player_pos, obstacle_pos, obstacle_size, player_size):
-            player_health -= 1
-            obstacle_pos[1] = SCREEN_HEIGHT
-
         if detect_collision(player_pos, enemy_pos, enemy_size, player_size):
             player_health -= 1
             enemy_pos[1] = SCREEN_HEIGHT
+            if player_health <= 0:
+                display_text(screen, "You Died!", RED, 36, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
+                pygame.display.flip()
+                pygame.time.wait(3000)
+                running = False
 
         # Clear the screen
         screen.fill(BLACK)
 
-        # Draw the player, obstacle, and enemy
+        # Draw elements
+        draw_environment(screen)
         draw_player(screen, player_pos)
-        draw_obstacle(screen, obstacle_pos)
         draw_enemy(screen, enemy_pos)
+
+        # Display health and score
+        display_text(screen, f'Health: {player_health}', WHITE, 24, 10, 10)
+        display_text(screen, f'Score: {score}', WHITE, 24, 10, 40)
 
         # Update the display
         pygame.display.flip()
         clock.tick(60)
-
-        # Check for game over
-        if player_health <= 0:
-            print("Game Over")
-            running = False
-
-        # Check for win condition
-        if score >= WIN_SCORE:
-            print("You Win!")
-            running = False
 
     pygame.quit()
     sys.exit()

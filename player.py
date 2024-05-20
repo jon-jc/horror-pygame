@@ -1,3 +1,4 @@
+# player.py
 import pygame
 
 # Player properties
